@@ -5,72 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lecture Libre</title>
 <style>
-  :root{ --ink:#1f2430; --soft:#5b6472; --card:#fff; --accent:#2f7dd1; --go:#2aa876; }
+  :root{ --ink:#1b2230; --soft:#5b6472; --card:#fff; --go:#2aa876; --b1:#2f7dd1; --b2:#7c5cff; --b3:#e0893a; }
   *{box-sizing:border-box;}
   body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink);
-    background:linear-gradient(160deg,#eef3fb,#f7eef7); min-height:100vh; padding:22px 16px 60px; }
-  .wrap{ max-width:620px; margin:0 auto; }
+    background:linear-gradient(160deg,#eef3fb,#f6eef7); min-height:100vh; padding:22px 16px 60px; }
+  .wrap{ max-width:640px; margin:0 auto; }
   h1{ font-size:1.7rem; margin:.1em 0; }
   .sub{ color:var(--soft); margin:0 0 18px; }
-  .card{ background:var(--card); border-radius:18px; padding:20px; box-shadow:0 8px 24px rgba(40,60,90,.1); margin-bottom:16px; }
+  .card{ background:var(--card); border-radius:18px; padding:18px; box-shadow:0 8px 24px rgba(40,60,90,.1); margin-bottom:16px; }
   label{ font-weight:700; display:block; margin-bottom:8px; }
   input[type=url]{ width:100%; font-size:1.05rem; padding:14px; border:2px solid #dce3ee; border-radius:12px; }
-  .btn{ display:block; width:100%; margin-top:12px; border:none; border-radius:12px; padding:16px; font-size:1.15rem; font-weight:700; color:#fff; background:var(--go); cursor:pointer; }
-  .btn.alt{ background:var(--accent); font-size:1rem; padding:12px; }
-  .bm{ display:inline-block; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; padding:12px 18px; border-radius:999px; cursor:grab; }
-  .step{ color:var(--soft); margin:.4em 0; }
-  code{ background:#eef2f7; padding:2px 6px; border-radius:6px; }
-  .small{ color:var(--soft); font-size:.88rem; }
-  details{ margin-top:6px; } summary{ cursor:pointer; font-weight:700; }
+  .methods{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  .m{ border:none; border-radius:12px; padding:14px 12px; font-size:1rem; font-weight:700; color:#fff; cursor:pointer; text-align:left; line-height:1.25; }
+  .m small{ display:block; font-weight:500; opacity:.9; font-size:.78rem; margin-top:2px; }
+  .m.primary{ grid-column:1/-1; background:var(--go); font-size:1.15rem; }
+  .m.b1{ background:var(--b1);} .m.b2{ background:var(--b2);} .m.b3{ background:var(--b3);} .m.w{ background:#111827; grid-column:1/-1;}
+  details{ margin-top:4px;} summary{ cursor:pointer; font-weight:700;}
+  .bm{ display:inline-block; background:#334155; color:#fff; text-decoration:none; font-weight:700; padding:12px 16px; border-radius:999px; cursor:grab; margin-top:8px;}
+  .small{ color:var(--soft); font-size:.86rem;} code{ background:#eef2f7; padding:2px 6px; border-radius:6px;}
+  .cfg input{ width:100%; padding:10px; border:2px solid #dce3ee; border-radius:10px; margin-top:6px; font-size:.9rem;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🪜 Lecture Libre</h1>
-  <p class="sub">Un article bloqué ? Colle son lien ci-dessous.</p>
+  <p class="sub">Article bloqué ? Colle le lien, puis essaie une méthode (la 1ʳᵉ marche le plus souvent).</p>
 
   <div class="card">
     <label for="url">🔗 Lien de l'article</label>
     <input id="url" type="url" inputmode="url" placeholder="https://www.lemonde.fr/…" autocomplete="off">
-    <button class="btn" id="go">📖 Lire librement</button>
-    <button class="btn alt" id="go2">🔁 Autre version (miroir)</button>
-    <p class="small" style="margin-top:12px">Ça ouvre la <b>version archivée/sans mur</b> de l'article (marche aussi sur <b>mobile</b>). L'adresse est envoyée à archive.today (service tiers).</p>
+    <div class="methods">
+      <button class="m primary" data-m="wayback">📚 Internet Archive <small>la dernière capture sauvegardée — le plus fiable, marche partout (mobile inclus)</small></button>
+      <button class="m b1" data-m="archive">🗄️ archive.today <small>autre archive</small></button>
+      <button class="m b2" data-m="t12">🔓 12ft.io <small>murs « mous »</small></button>
+      <button class="m b3" data-m="freedium">✍️ Freedium <small>pour Medium</small></button>
+      <button class="m w" id="wkBtn" data-m="worker" style="display:none">🪜 Mon lecteur (fetch frais) <small>ton Cloudflare Worker — récupère l'article même non archivé</small></button>
+    </div>
   </div>
 
   <div class="card">
     <details>
-      <summary>⚙️ Option avancée (ordinateur) : le favori « Lire sans mur »</summary>
-      <p class="step">Pour les murs « mous » (texte déjà chargé, caché par un voile). Sur ordi :</p>
-      <p class="step">1. Glisse ce bouton dans ta <b>barre de favoris</b> :</p>
-      <p><a id="bm" class="bm" href="#">🪜 Lire sans mur</a></p>
-      <p class="step">2. Va sur l'article bloqué (<b>sur l'autre site</b>, pas ici) et clique le favori.</p>
-      <p class="small">⚠️ Cliqué sur CETTE page, il ne fait rien (il n'y a pas de mur ici).</p>
+      <summary>⚙️ Options avancées</summary>
+      <p class="small" style="margin-top:10px"><b>Favori « Lire sans mur »</b> (ordinateur, murs mous) — glisse-le dans ta barre de favoris, puis clique-le <b>sur l'article</b> :</p>
+      <a id="bm" class="bm" href="#">🪜 Lire sans mur</a>
+      <div class="cfg" style="margin-top:14px">
+        <b class="small">🪜 URL de ton Cloudflare Worker</b> (si tu en déploies un, cf. dossier <code>worker/</code>) :
+        <input id="wk" placeholder="https://xxx.workers.dev">
+      </div>
     </details>
   </div>
-
-  <p class="small">Usage strictement personnel de lecture. Rien ne tourne sur ton appareil : page statique + ton navigateur.</p>
+  <p class="small">Usage strictement personnel de lecture. Aucune méthode n'est garantie à 100% (un article tout neuf n'est pas encore archivé, certains murs « durs » résistent) → essaie-en plusieurs.</p>
 </div>
 
 <script>
-function norm(u){ u=(u||'').trim(); if(!u) return ''; if(!/^https?:\/\//i.test(u)) u='https://'+u; return u; }
-function open1(){ var u=norm(document.getElementById('url').value); if(!u){document.getElementById('url').focus();return;} window.open('https://archive.ph/newest/'+encodeURIComponent(u),'_blank'); }
-function open2(){ var u=norm(document.getElementById('url').value); if(!u){document.getElementById('url').focus();return;} window.open('https://archive.today/newest/'+encodeURIComponent(u),'_blank'); }
-document.getElementById('go').addEventListener('click',open1);
-document.getElementById('go2').addEventListener('click',open2);
-document.getElementById('url').addEventListener('keydown',function(e){ if(e.key==='Enter') open1(); });
-
-/* bookmarklet (option avancée) */
-var MAIN=function(){ try{ var d=document,h=d.documentElement,b=d.body,k=0;
-  [h,b].forEach(function(e){ if(!e)return; e.style.setProperty('overflow','auto','important'); e.style.setProperty('position','static','important'); ['no-scroll','noscroll','modal-open','overflow-hidden','is-locked','tp-modal-open'].forEach(function(c){e.classList.remove(c);}); });
-  ['[class*="paywall"]','[id*="paywall"]','[class*="piano"]','.tp-modal','.tp-backdrop','[class*="poool"]','[class*="qiota"]','[class*="regwall"]','[class*="subscription-wall"]','[class*="premium-overlay"]','[data-paywall]'].forEach(function(s){ d.querySelectorAll(s).forEach(function(el){try{el.remove();k++;}catch(e){}}); });
-  d.querySelectorAll('body *').forEach(function(el){ try{ var cs=getComputedStyle(el);
-    if(cs.position==='fixed'||cs.position==='sticky'){ var r=el.getBoundingClientRect(); if(r.width>=innerWidth*0.8&&r.height>=innerHeight*0.5){el.remove();k++;return;} }
-    if(cs.filter&&cs.filter.indexOf('blur')>-1) el.style.setProperty('filter','none','important');
-    if(cs.webkitLineClamp&&cs.webkitLineClamp!=='none') el.style.setProperty('-webkit-line-clamp','unset','important');
-    var mh=parseInt(cs.maxHeight); if(cs.overflow==='hidden'&&mh>0&&mh<2500&&el.textContent.length>400){el.style.setProperty('max-height','none','important');el.style.setProperty('overflow','visible','important');}
-  }catch(e){} });
-  alert(k? ('🪜 Nettoyé ('+k+' éléments). Article encore coupé ? → colle le lien sur la page Lecture Libre.') : '🪜 Rien à nettoyer ici — utilise-moi SUR un article bloqué (autre site).');
-}catch(e){alert('Erreur: '+e.message);} };
+function norm(u){ u=(u||'').trim(); if(!u)return''; if(!/^https?:\/\//i.test(u))u='https://'+u; return u; }
+function U(){ const v=norm(document.getElementById('url').value); if(!v){document.getElementById('url').focus();} return v; }
+const WK = (()=>{ try{return localStorage.getItem('wk_url')||'';}catch(e){return'';} })();
+const links = {
+  wayback: u=>'https://web.archive.org/web/2/'+u,
+  archive: u=>'https://archive.ph/newest/'+encodeURIComponent(u),
+  t12:     u=>'https://12ft.io/proxy?q='+encodeURIComponent(u),
+  freedium:u=>'https://freedium.cfd/'+u,
+  worker:  u=> (WK? WK.replace(/\/$/,'')+'/?url='+encodeURIComponent(u) : '')
+};
+document.querySelectorAll('.m').forEach(b=> b.addEventListener('click',()=>{
+  const u=U(); if(!u)return; const f=links[b.dataset.m]; const url=f&&f(u); if(url) window.open(url,'_blank');
+}));
+document.getElementById('url').addEventListener('keydown',e=>{ if(e.key==='Enter') window.open(links.wayback(U()),'_blank'); });
+// worker config
+(function(){ const wk=document.getElementById('wk'), btn=document.getElementById('wkBtn');
+  if(WK){ wk.value=WK; btn.style.display='block'; }
+  wk.addEventListener('change',()=>{ try{localStorage.setItem('wk_url',norm(wk.value));}catch(e){} btn.style.display=norm(wk.value)?'block':'none'; location.reload(); });
+})();
+// bookmarklet (murs mous)
+var MAIN=function(){try{var d=document,h=d.documentElement,b=d.body,k=0;
+ [h,b].forEach(function(e){if(!e)return;e.style.setProperty('overflow','auto','important');e.style.setProperty('position','static','important');['no-scroll','noscroll','modal-open','overflow-hidden','tp-modal-open'].forEach(function(c){e.classList.remove(c);});});
+ ['[class*="paywall"]','[id*="paywall"]','[class*="piano"]','.tp-modal','.tp-backdrop','[class*="poool"]','[class*="qiota"]','[class*="regwall"]','[class*="subscription-wall"]','[class*="premium-overlay"]','[data-paywall]'].forEach(function(s){d.querySelectorAll(s).forEach(function(el){try{el.remove();k++;}catch(e){}});});
+ d.querySelectorAll('body *').forEach(function(el){try{var cs=getComputedStyle(el);if((cs.position==='fixed'||cs.position==='sticky')){var r=el.getBoundingClientRect();if(r.width>=innerWidth*0.8&&r.height>=innerHeight*0.5){el.remove();k++;return;}}if(cs.filter&&cs.filter.indexOf('blur')>-1)el.style.setProperty('filter','none','important');if(cs.webkitLineClamp&&cs.webkitLineClamp!=='none')el.style.setProperty('-webkit-line-clamp','unset','important');var mh=parseInt(cs.maxHeight);if(cs.overflow==='hidden'&&mh>0&&mh<2500&&el.textContent.length>400){el.style.setProperty('max-height','none','important');el.style.setProperty('overflow','visible','important');}}catch(e){}});
+ alert(k?('🪜 Nettoyé ('+k+' éléments).'):'🪜 Rien à nettoyer ici — utilise-moi SUR un article bloqué.');}catch(e){alert('Erreur: '+e.message);}};
 document.getElementById('bm').href='javascript:('+MAIN.toString().replace(/\s+/g,' ')+')();';
 </script>
 </body>
