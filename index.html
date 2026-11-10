@@ -3,97 +3,75 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lecture Libre — removepaywall perso</title>
+<title>Lecture Libre</title>
 <style>
-  :root{ --ink:#1f2430; --soft:#5b6472; --card:#fff; --accent:#2f7dd1; --go:#2aa876; --bg:#eef2f7; }
+  :root{ --ink:#1f2430; --soft:#5b6472; --card:#fff; --accent:#2f7dd1; --go:#2aa876; }
   *{box-sizing:border-box;}
   body{ margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink);
-    background:linear-gradient(160deg,#eef3fb,#f7eef7); min-height:100vh; padding:24px 16px 60px; }
-  .wrap{ max-width:720px; margin:0 auto; }
-  h1{ font-size:1.8rem; margin:.2em 0; }
-  .sub{ color:var(--soft); margin:0 0 20px; }
-  .card{ background:var(--card); border-radius:18px; padding:20px 22px; box-shadow:0 8px 24px rgba(40,60,90,.1); margin-bottom:18px; }
-  .bm{ display:inline-block; background:var(--go); color:#fff; text-decoration:none; font-weight:700; font-size:1.1rem;
-    padding:14px 22px; border-radius:999px; box-shadow:0 6px 16px rgba(42,168,118,.35); cursor:grab; }
-  .bm.alt{ background:var(--accent); box-shadow:0 6px 16px rgba(47,125,209,.35); }
-  .step{ display:flex; gap:12px; margin:10px 0; }
-  .num{ flex:0 0 28px; height:28px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    background:linear-gradient(160deg,#eef3fb,#f7eef7); min-height:100vh; padding:22px 16px 60px; }
+  .wrap{ max-width:620px; margin:0 auto; }
+  h1{ font-size:1.7rem; margin:.1em 0; }
+  .sub{ color:var(--soft); margin:0 0 18px; }
+  .card{ background:var(--card); border-radius:18px; padding:20px; box-shadow:0 8px 24px rgba(40,60,90,.1); margin-bottom:16px; }
+  label{ font-weight:700; display:block; margin-bottom:8px; }
+  input[type=url]{ width:100%; font-size:1.05rem; padding:14px; border:2px solid #dce3ee; border-radius:12px; }
+  .btn{ display:block; width:100%; margin-top:12px; border:none; border-radius:12px; padding:16px; font-size:1.15rem; font-weight:700; color:#fff; background:var(--go); cursor:pointer; }
+  .btn.alt{ background:var(--accent); font-size:1rem; padding:12px; }
+  .bm{ display:inline-block; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; padding:12px 18px; border-radius:999px; cursor:grab; }
+  .step{ color:var(--soft); margin:.4em 0; }
   code{ background:#eef2f7; padding:2px 6px; border-radius:6px; }
-  .ok{ color:var(--go); font-weight:700; } .warn{ color:#c0392b; font-weight:700; }
-  ul{ margin:.4em 0; padding-left:1.2em; } li{ margin:.25em 0; }
-  .small{ color:var(--soft); font-size:.9rem; }
+  .small{ color:var(--soft); font-size:.88rem; }
+  details{ margin-top:6px; } summary{ cursor:pointer; font-weight:700; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🪜 Lecture Libre</h1>
-  <p class="sub">Mon removepaywall perso — sans serveur, 100% dans ton navigateur.</p>
+  <p class="sub">Un article bloqué ? Colle son lien ci-dessous.</p>
 
   <div class="card">
-    <h2>1. Installe (glisse dans ta barre de favoris)</h2>
-    <p>Fais glisser ce bouton dans ta <b>barre de favoris</b> (ou clic droit → Ajouter aux favoris) :</p>
-    <p><a id="bmMain" class="bm" href="#">🪜 Lire sans mur</a></p>
-    <p class="small">Bonus, pour les paywalls « durs » (texte pas chargé du tout) :</p>
-    <p><a id="bmArchive" class="bm alt" href="#">📰 Version archivée</a></p>
+    <label for="url">🔗 Lien de l'article</label>
+    <input id="url" type="url" inputmode="url" placeholder="https://www.lemonde.fr/…" autocomplete="off">
+    <button class="btn" id="go">📖 Lire librement</button>
+    <button class="btn alt" id="go2">🔁 Autre version (miroir)</button>
+    <p class="small" style="margin-top:12px">Ça ouvre la <b>version archivée/sans mur</b> de l'article (marche aussi sur <b>mobile</b>). L'adresse est envoyée à archive.today (service tiers).</p>
   </div>
 
   <div class="card">
-    <h2>2. Utilise</h2>
-    <div class="step"><div class="num">1</div><div>Sur un article bloqué, clique sur le favori <b>🪜 Lire sans mur</b>.</div></div>
-    <div class="step"><div class="num">2</div><div>Il retire le voile, le flou, le verrou de défilement et les fenêtres d'abonnement → le texte réapparaît.</div></div>
-    <div class="step"><div class="num">3</div><div>Si l'article reste coupé (paywall « dur »), clique <b>📰 Version archivée</b>.</div></div>
+    <details>
+      <summary>⚙️ Option avancée (ordinateur) : le favori « Lire sans mur »</summary>
+      <p class="step">Pour les murs « mous » (texte déjà chargé, caché par un voile). Sur ordi :</p>
+      <p class="step">1. Glisse ce bouton dans ta <b>barre de favoris</b> :</p>
+      <p><a id="bm" class="bm" href="#">🪜 Lire sans mur</a></p>
+      <p class="step">2. Va sur l'article bloqué (<b>sur l'autre site</b>, pas ici) et clique le favori.</p>
+      <p class="small">⚠️ Cliqué sur CETTE page, il ne fait rien (il n'y a pas de mur ici).</p>
+    </details>
   </div>
 
-  <div class="card">
-    <h2>🔐 Pourquoi c'est sûr</h2>
-    <ul>
-      <li><span class="ok">Aucun serveur</span> : rien n'est hébergé, rien n'est exposé, rien à sécuriser.</li>
-      <li>Le code tourne <b>uniquement dans ton navigateur</b>, quand <b>tu</b> cliques, sur la page que <b>tu</b> lis.</li>
-      <li>Personne d'autre ne peut l'utiliser (contrairement à un proxy type Ladder qui, mal configuré, devient un relais ouvert sous ta responsabilité).</li>
-    </ul>
-    <h3>À savoir (honnête)</h3>
-    <ul>
-      <li>Marche très bien sur les paywalls « mous » (le texte est déjà chargé, caché sous un voile/flou — fréquent sur beaucoup de sites FR).</li>
-      <li>Ne peut rien faire si le texte n'est <b>pas envoyé</b> (paywall « dur ») → d'où le bouton <b>Archivée</b>. <span class="small">(Celui-ci envoie l'URL à archive.today, un tiers.)</span></li>
-      <li>Usage <b>strictement personnel</b> de lecture. Contourner un paywall peut enfreindre les CGU de l'éditeur.</li>
-    </ul>
-  </div>
+  <p class="small">Usage strictement personnel de lecture. Rien ne tourne sur ton appareil : page statique + ton navigateur.</p>
 </div>
 
 <script>
-/* Bookmarklet principal : nettoie les paywalls "mous" (voile, flou, scroll-lock, modales d'abo). */
-var MAIN = function(){
-  try{
-    var d=document,h=d.documentElement,b=d.body,killed=0;
-    [h,b].forEach(function(e){ if(!e)return;
-      e.style.setProperty('overflow','auto','important');
-      e.style.setProperty('position','static','important');
-      ['no-scroll','noscroll','modal-open','has-modal','overflow-hidden','is-locked','tp-modal-open','fixed'].forEach(function(c){e.classList.remove(c);});
-    });
-    var sel=['[class*="paywall"]','[id*="paywall"]','[class*="piano"]','.tp-modal','.tp-backdrop','#tp-modal',
-      '[class*="poool"]','[id*="poool"]','[class*="qiota"]','[class*="regwall"]','[class*="reg-wall"]',
-      '[class*="subscribe-wall"]','[class*="subscription-wall"]','[class*="premium-overlay"]',
-      '[class*="gate-"]','[class*="-gate"]','[class*="metered"]','[class*="offer-overlay"]','[data-paywall]'];
-    sel.forEach(function(s){ d.querySelectorAll(s).forEach(function(el){ try{el.remove();killed++;}catch(e){} }); });
-    d.querySelectorAll('body *').forEach(function(el){ try{
-      var cs=getComputedStyle(el);
-      if(cs.position==='fixed'||cs.position==='sticky'){
-        var r=el.getBoundingClientRect();
-        if(r.width>=innerWidth*0.8 && r.height>=innerHeight*0.5){ el.remove(); killed++; return; }
-      }
-      if(cs.filter&&cs.filter.indexOf('blur')>-1) el.style.setProperty('filter','none','important');
-      if(cs.webkitLineClamp&&cs.webkitLineClamp!=='none') el.style.setProperty('-webkit-line-clamp','unset','important');
-      if(cs.overflow==='hidden'){ var mh=parseInt(cs.maxHeight); if(mh>0&&mh<2500&&el.textContent.length>400){ el.style.setProperty('max-height','none','important'); el.style.setProperty('overflow','visible','important'); } }
-      el.style.setProperty('user-select','auto','important');
-    }catch(e){} });
-    alert('🪜 Nettoyé ('+killed+' éléments retirés). Article encore coupé ? → bouton « Version archivée ».');
-  }catch(e){ alert('Erreur: '+e.message); }
-};
-var ARCHIVE = function(){ location.href='https://archive.ph/newest/'+encodeURIComponent(location.href); };
+function norm(u){ u=(u||'').trim(); if(!u) return ''; if(!/^https?:\/\//i.test(u)) u='https://'+u; return u; }
+function open1(){ var u=norm(document.getElementById('url').value); if(!u){document.getElementById('url').focus();return;} window.open('https://archive.ph/newest/'+encodeURIComponent(u),'_blank'); }
+function open2(){ var u=norm(document.getElementById('url').value); if(!u){document.getElementById('url').focus();return;} window.open('https://archive.today/newest/'+encodeURIComponent(u),'_blank'); }
+document.getElementById('go').addEventListener('click',open1);
+document.getElementById('go2').addEventListener('click',open2);
+document.getElementById('url').addEventListener('keydown',function(e){ if(e.key==='Enter') open1(); });
 
-function toBookmarklet(fn){ return 'javascript:('+fn.toString().replace(/\s+/g,' ')+')();'; }
-document.getElementById('bmMain').href = toBookmarklet(MAIN);
-document.getElementById('bmArchive').href = toBookmarklet(ARCHIVE);
+/* bookmarklet (option avancée) */
+var MAIN=function(){ try{ var d=document,h=d.documentElement,b=d.body,k=0;
+  [h,b].forEach(function(e){ if(!e)return; e.style.setProperty('overflow','auto','important'); e.style.setProperty('position','static','important'); ['no-scroll','noscroll','modal-open','overflow-hidden','is-locked','tp-modal-open'].forEach(function(c){e.classList.remove(c);}); });
+  ['[class*="paywall"]','[id*="paywall"]','[class*="piano"]','.tp-modal','.tp-backdrop','[class*="poool"]','[class*="qiota"]','[class*="regwall"]','[class*="subscription-wall"]','[class*="premium-overlay"]','[data-paywall]'].forEach(function(s){ d.querySelectorAll(s).forEach(function(el){try{el.remove();k++;}catch(e){}}); });
+  d.querySelectorAll('body *').forEach(function(el){ try{ var cs=getComputedStyle(el);
+    if(cs.position==='fixed'||cs.position==='sticky'){ var r=el.getBoundingClientRect(); if(r.width>=innerWidth*0.8&&r.height>=innerHeight*0.5){el.remove();k++;return;} }
+    if(cs.filter&&cs.filter.indexOf('blur')>-1) el.style.setProperty('filter','none','important');
+    if(cs.webkitLineClamp&&cs.webkitLineClamp!=='none') el.style.setProperty('-webkit-line-clamp','unset','important');
+    var mh=parseInt(cs.maxHeight); if(cs.overflow==='hidden'&&mh>0&&mh<2500&&el.textContent.length>400){el.style.setProperty('max-height','none','important');el.style.setProperty('overflow','visible','important');}
+  }catch(e){} });
+  alert(k? ('🪜 Nettoyé ('+k+' éléments). Article encore coupé ? → colle le lien sur la page Lecture Libre.') : '🪜 Rien à nettoyer ici — utilise-moi SUR un article bloqué (autre site).');
+}catch(e){alert('Erreur: '+e.message);} };
+document.getElementById('bm').href='javascript:('+MAIN.toString().replace(/\s+/g,' ')+')();';
 </script>
 </body>
 </html>
