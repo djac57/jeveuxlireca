@@ -35,6 +35,9 @@
   <div class="card">
     <label for="url">🔗 Lien de l'article</label>
     <input id="url" type="url" inputmode="url" placeholder="https://www.lemonde.fr/…" autocomplete="off">
+    <button id="smartBtn" style="width:100%;margin:12px 0 4px;border:none;border-radius:12px;padding:16px;font-size:1.15rem;font-weight:800;color:#fff;background:#2aa876;cursor:pointer">🪄 Lire (essaie tout)</button>
+    <div id="status" class="small" style="min-height:1.2em"></div>
+    <p class="small" style="margin:12px 0 2px"><b>…ou choisis une méthode :</b></p>
 
     <div class="tool">
       <span class="ico">🪜</span>
@@ -85,7 +88,22 @@ const links = {
   freedium:u=> "https://freedium.cfd/"+u,
 };
 document.querySelectorAll("button[data-m]").forEach(b=> b.addEventListener("click",()=>{ const u=U(); if(!u)return; window.open(links[b.dataset.m](u),"_blank"); }));
-document.getElementById("url").addEventListener("keydown",e=>{ if(e.key==="Enter"){ const u=U(); if(u) window.open(links.worker(u),"_blank"); } });
+function status(m){ document.getElementById("status").textContent=m||""; }
+async function smart(){
+  const u=U(); if(!u) return;
+  status("🔎 Recherche de la meilleure méthode…");
+  try{ const r=await fetch(WK.replace(/\/$/,"")+"/?probe=1&url="+encodeURIComponent(u),{cache:"no-store"});
+    const j=await r.json(); if(j&&j.full){ status("✅ Texte complet trouvé → Mon lecteur."); window.open(links.worker(u),"_blank"); return; }
+  }catch(e){}
+  try{ const r=await fetch("https://archive.org/wayback/available?url="+encodeURIComponent(u));
+    const j=await r.json(); const s=j&&j.archived_snapshots&&j.archived_snapshots.closest;
+    if(s&&s.available){ status("✅ Snapshot trouvé → Internet Archive."); window.open(s.url.replace(/^http:/,"https:"),"_blank"); return; }
+  }catch(e){}
+  status("⚠️ Pas de version complète détectée — j'ouvre le meilleur essai (Mon lecteur).");
+  window.open(links.worker(u),"_blank");
+}
+document.getElementById("smartBtn").addEventListener("click",smart);
+document.getElementById("url").addEventListener("keydown",e=>{ if(e.key==="Enter") smart(); });
 // config worker
 (function(){ const wk=document.getElementById("wk"); wk.value=WK;
   wk.addEventListener("change",()=>{ WK=norm(wk.value)||DEFAULT_WK; try{localStorage.setItem("wk_url",WK);}catch(e){} }); })();
