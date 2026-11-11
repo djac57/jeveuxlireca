@@ -4,6 +4,12 @@
  * - ?probe=1&url=.. -> renvoie {full:bool,...} en JSON (pour le bouton "essaie tout")
  * Se présente comme Googlebot, extrait le texte intégral du JSON-LD si présent.
  * ⚠️ Usage strictement personnel de lecture. CORS ouvert (lecture perso).
+ *
+ * ACCÈS PROTÉGÉ PAR MOT DE PASSE (secret « MDP » du worker) :
+ *   - sans secret MDP configuré, le worker refuse tout (fermé par défaut) ;
+ *   - ?k=<mot de passe> ouvre l'accès : le worker pose un cookie (empreinte du mot de passe, pas le mot
+ *     de passe) puis redirige vers la même adresse SANS le mot de passe ;
+ *   - la page jeveuxlireca envoie ?k= à chaque appel (le mot de passe reste dans le navigateur de l'utilisateur).
  */
 const BOT = {
   "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
@@ -13,9 +19,24 @@ const BOT = {
 const CORS = { "access-control-allow-origin": "*" };
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const u = new URL(request.url);
     const probe = u.searchParams.get("probe");
+
+    // ---- verrou ----
+    const MDP = ((env && env.MDP) || "").trim();
+    if (!MDP) return probe ? json({ full: false, locked: true, err: "MDP non configuré" }, 503) : page("<p>Service fermé : mot de passe non configuré.</p>", 503);
+    const jeton = await empreinte(MDP);
+    const k = (u.searchParams.get("k") || "").trim();
+    const ck = (request.headers.get("cookie") || "").match(/(?:^|;\s*)jvl=([a-f0-9]+)/);
+    const parK = k !== "" && egal(k, MDP), parCookie = !!ck && egal(ck[1], jeton);
+    if (!parK && !parCookie) return probe ? json({ full: false, locked: true }, 401) : page(verrou(u, k !== ""), 401);
+    if (parK && !probe) {                       // on retire le mot de passe de l'adresse et on pose le cookie
+      u.searchParams.delete("k");
+      return new Response(null, { status: 302, headers: { location: u.toString(),
+        "set-cookie": "jvl=" + jeton + "; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax" } });
+    }
+
     let target = u.searchParams.get("url") || decodeURIComponent(u.pathname.slice(1));
     if (!target) return page(landing(u.origin));
     if (!/^https?:\/\//i.test(target)) target = "https://" + target;
@@ -72,8 +93,20 @@ function strip(src, base) {
   return /<head[^>]*>/i.test(src) ? src.replace(/<head([^>]*)>/i, "<head$1>" + inject) : inject + src;
 }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+async function empreinte(s){ const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jeveuxlireca:" + s));
+  return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+function egal(a, b){ if (a.length !== b.length) return false; let r = 0; for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i); return r === 0; }
+function verrou(u, rate){
+  const cible = u.searchParams.get("url") || "";
+  return `<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>jeveuxlireca</title>
+  <body style="font-family:system-ui;max-width:420px;margin:60px auto;padding:0 16px"><h1>🔒 jeveuxlireca</h1>
+  <p>${rate ? "Mot de passe incorrect." : "Accès réservé."}</p>
+  <form method=get><input type=hidden name=url value="${esc(cible)}">
+  <input name=k type=password placeholder="mot de passe" autofocus style="width:100%;padding:12px;border:2px solid #ccd;border-radius:10px">
+  <button style="margin-top:10px;padding:12px 18px;border:0;border-radius:10px;background:#2aa876;color:#fff;font-weight:700">Entrer</button></form></body>`;
+}
 function page(body, status){ return new Response(body, { status: status || 200, headers: { "content-type": "text/html; charset=utf-8", ...CORS } }); }
-function json(obj){ return new Response(JSON.stringify(obj), { headers: { "content-type": "application/json", ...CORS } }); }
+function json(obj, status){ return new Response(JSON.stringify(obj), { status: status || 200, headers: { "content-type": "application/json", ...CORS } }); }
 function landing(origin){
   return `<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>jeveuxlireca</title>
   <body style="font-family:system-ui;max-width:600px;margin:40px auto;padding:0 16px"><h1>🪜 jeveuxlireca</h1>

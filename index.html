@@ -72,6 +72,8 @@
       <a id="bm" class="bm" href="#">🪜 Lire sans mur</a>
       <p class="small" style="margin-top:14px">🪜 URL de ton Worker (déjà configurée) :</p>
       <input id="wk" style="width:100%;padding:10px;border:2px solid #dce3ee;border-radius:10px;font-size:.9rem">
+      <p class="small" style="margin-top:14px">🔒 Mot de passe de « Mon lecteur » (gardé dans ce navigateur) :</p>
+      <input id="mdp" type="password" autocomplete="off" style="width:100%;padding:10px;border:2px solid #dce3ee;border-radius:10px;font-size:.9rem">
     </details>
   </div>
 </div>
@@ -81,19 +83,26 @@ const DEFAULT_WK = "https://jeveuxlireca.djac-gene.workers.dev";
 let WK = DEFAULT_WK; try{ WK = localStorage.getItem("wk_url") || DEFAULT_WK; }catch(e){}
 function norm(u){ u=(u||"").trim(); if(!u)return""; if(!/^https?:\/\//i.test(u))u="https://"+u; return u; }
 function U(){ const v=norm(document.getElementById("url").value); if(!v)document.getElementById("url").focus(); return v; }
+// mot de passe du lecteur : saisi une fois, gardé dans CE navigateur (jamais dans le code de la page)
+let MDP=""; try{ MDP=localStorage.getItem("wk_mdp")||""; }catch(e){}
+function demanderMdp(msg){ const v=(prompt(msg||"Mot de passe de « Mon lecteur » :")||"").trim(); if(v){ MDP=v; try{localStorage.setItem("wk_mdp",v);}catch(e){} const f=document.getElementById("mdp"); if(f) f.value=v; } return v; }
+function cle(){ return MDP?("&k="+encodeURIComponent(MDP)):""; }
 const links = {
-  worker:  u=> WK.replace(/\/$/,"")+"/?url="+encodeURIComponent(u),
+  worker:  u=> WK.replace(/\/$/,"")+"/?url="+encodeURIComponent(u)+cle(),
   wayback: u=> "https://web.archive.org/web/2/"+u,
   archive: u=> "https://archive.ph/newest/"+encodeURIComponent(u),
   freedium:u=> "https://freedium.cfd/"+u,
 };
-document.querySelectorAll("button[data-m]").forEach(b=> b.addEventListener("click",()=>{ const u=U(); if(!u)return; window.open(links[b.dataset.m](u),"_blank"); }));
+document.querySelectorAll("button[data-m]").forEach(b=> b.addEventListener("click",()=>{ const u=U(); if(!u)return; if(b.dataset.m==="worker"&&!MDP&&!demanderMdp()) return; window.open(links[b.dataset.m](u),"_blank"); }));
 function status(m){ document.getElementById("status").textContent=m||""; }
 async function smart(){
   const u=U(); if(!u) return;
   status("🔎 Recherche de la meilleure méthode…");
-  try{ const r=await fetch(WK.replace(/\/$/,"")+"/?probe=1&url="+encodeURIComponent(u),{cache:"no-store"});
-    const j=await r.json(); if(j&&j.full){ status("✅ Texte complet trouvé → Mon lecteur."); window.open(links.worker(u),"_blank"); return; }
+  try{ const sonde=()=>fetch(WK.replace(/\/$/,"")+"/?probe=1&url="+encodeURIComponent(u)+cle(),{cache:"no-store"}).then(r=>r.json());
+    let j=await sonde();
+    if(j&&j.locked&&demanderMdp(MDP?"Mot de passe incorrect. Réessaie :":"")) j=await sonde();   // 1re utilisation ou mauvais mot de passe
+    if(j&&j.locked){ MDP=""; try{localStorage.removeItem("wk_mdp");}catch(e){} }
+    if(j&&j.full){ status("✅ Texte complet trouvé → Mon lecteur."); window.open(links.worker(u),"_blank"); return; }
   }catch(e){}
   try{ const r=await fetch("https://archive.org/wayback/available?url="+encodeURIComponent(u));
     const j=await r.json(); const s=j&&j.archived_snapshots&&j.archived_snapshots.closest;
@@ -107,6 +116,8 @@ document.getElementById("url").addEventListener("keydown",e=>{ if(e.key==="Enter
 // config worker
 (function(){ const wk=document.getElementById("wk"); wk.value=WK;
   wk.addEventListener("change",()=>{ WK=norm(wk.value)||DEFAULT_WK; try{localStorage.setItem("wk_url",WK);}catch(e){} }); })();
+(function(){ const f=document.getElementById("mdp"); f.value=MDP;
+  f.addEventListener("change",()=>{ MDP=f.value.trim(); try{ MDP?localStorage.setItem("wk_mdp",MDP):localStorage.removeItem("wk_mdp"); }catch(e){} }); })();
 // favori
 var MAIN=function(){try{var d=document,h=d.documentElement,b=d.body,k=0;
  [h,b].forEach(function(e){if(!e)return;e.style.setProperty("overflow","auto","important");e.style.setProperty("position","static","important");["no-scroll","noscroll","modal-open","overflow-hidden","tp-modal-open"].forEach(function(c){e.classList.remove(c);});});

@@ -1,0 +1,41 @@
+name: Déployer le worker (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'worker/**'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy-worker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      MDP: ${{ secrets.MDP }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier les secrets
+        run: |
+          for s in CF_API_TOKEN CF_ACCOUNT_ID MDP; do
+            if [ -z "${!s}" ]; then echo "::error::Secret $s manquant dans ce dépôt (Settings > Secrets and variables > Actions)"; exit 1; fi
+          done
+      - name: Déployer le worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          command: deploy
+      - name: Poser le mot de passe APRÈS le deploy (sinon deploy l'efface)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          secrets: |
+            MDP
