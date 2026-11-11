@@ -50,6 +50,9 @@ export default {
     if (!ct.includes("text/html")) return probe ? json({ full: false }) : new Response(res.body, res);
 
     const src = await res.text();
+    // Le site a répondu par un contrôle anti-robot (ou un refus) au lieu de l'article : on le dit clairement.
+    const bloque = [401, 403, 429, 503].includes(res.status) || (src.length < 6000 && /enable JS|captcha-delivery|datadome|cf-chall|access denied|are you a robot/i.test(src));
+    if (bloque) return probe ? json({ full: false, bloque: true }) : page(refus(res.url || target), 200);
     const art = extractArticle(src);
     const full = !!(art && art.body && art.body.replace(/\s/g, "").length > 600);
 
@@ -91,7 +94,26 @@ function strip(src, base) {
     [class*=paywall],[id*=paywall],[class*=piano],.tp-modal,.tp-backdrop,[class*=poool],[class*=qiota],[class*=regwall],[class*=subscription],[class*=premium-overlay],[class*=gate-overlay],[data-paywall],[class*=gradient-mask],[class*=fade-out]{display:none!important;-webkit-mask:none!important;mask:none!important}
     *{-webkit-line-clamp:unset!important;max-height:none!important;filter:none!important}
     [class*=teaser],[class*=truncat],[class*=fade]{max-height:none!important;-webkit-mask:none!important;mask:none!important;opacity:1!important}</style>`;
-  return /<head[^>]*>/i.test(src) ? src.replace(/<head([^>]*)>/i, "<head$1>" + inject) : inject + src;
+  // On retire les scripts du site : hors de leur domaine ils plantent (« A required part of this site couldn't load »)
+  // et ce sont eux qui remettent le mur. Le contenu des <noscript> est gardé.
+  src = src.replace(/<script\b[\s\S]*?<\/script\s*>/gi, "").replace(/<\/?noscript[^>]*>/gi, "");
+  const u = base.href, bandeau = `<div style="all:initial;display:block;font:15px/1.45 system-ui,sans-serif;background:#fff8e1;color:#5a4500;border-bottom:1px solid #ecd9a0;padding:12px 16px;position:relative;z-index:2147483647">
+    <b>jeveuxlireca</b> — ce site n'a pas livré le texte complet (article probablement réservé aux abonnés : la suite n'est pas envoyée du tout). Voici la page nettoyée. Autres pistes :
+    <a style="color:#1a5fb4" href="https://web.archive.org/web/2/${esc(u)}" target="_blank">Internet Archive</a> ·
+    <a style="color:#1a5fb4" href="https://archive.ph/newest/${encodeURIComponent(u)}" target="_blank">archive.today</a> ·
+    <a style="color:#1a5fb4" href="${esc(u)}" target="_blank">page d'origine</a></div>`;
+  src = /<head[^>]*>/i.test(src) ? src.replace(/<head([^>]*)>/i, "<head$1>" + inject) : inject + src;
+  return /<body[^>]*>/i.test(src) ? src.replace(/<body([^>]*)>/i, "<body$1>" + bandeau) : bandeau + src;
+}
+function refus(u){
+  return `<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>jeveuxlireca</title>
+  <body style="font-family:system-ui;max-width:560px;margin:50px auto;padding:0 18px;line-height:1.55;color:#223">
+  <h1 style="font-size:1.4rem">🪜 jeveuxlireca</h1>
+  <p><b>Ce site refuse les lecteurs automatiques</b> (protection anti-robot) : « Mon lecteur » ne peut pas ouvrir cet article.</p>
+  <p>Ce qui peut encore marcher :</p>
+  <p><a href="https://web.archive.org/web/2/${esc(u)}" target=_blank>📚 Internet Archive</a><br>
+  <a href="https://archive.ph/newest/${encodeURIComponent(u)}" target=_blank>🗄️ archive.today</a><br>
+  <a href="${esc(u)}" target=_blank>↗ l'article d'origine</a></p></body>`;
 }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 async function empreinte(s){ const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("jeveuxlireca:" + s));

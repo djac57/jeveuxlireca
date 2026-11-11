@@ -105,20 +105,24 @@ const links = {
 document.querySelectorAll("button[data-m]").forEach(b=> b.addEventListener("click",()=>{ const u=U(); if(!u)return; if(b.dataset.m==="worker"&&!MDP&&!demanderMdp()) return; window.open(links[b.dataset.m](u),"_blank"); }));
 function status(m){ document.getElementById("status").textContent=m||""; }
 async function smart(){
-  const u=U(); if(!u) return;
+  const u=U(); if(!u) return; let bloque=false;
   status("🔎 Recherche de la meilleure méthode…");
   try{ const sonde=()=>fetch(WK.replace(/\/$/,"")+"/?probe=1&url="+encodeURIComponent(u)+cle(),{cache:"no-store"}).then(r=>r.json());
     let j=await sonde();
     if(j&&j.locked&&demanderMdp(MDP?"Mot de passe incorrect. Réessaie :":"")) j=await sonde();   // 1re utilisation ou mauvais mot de passe
     if(j&&j.locked){ MDP=""; try{localStorage.removeItem("wk_mdp");}catch(e){} }
     if(j&&j.full){ status("✅ Texte complet trouvé → Mon lecteur."); window.open(links.worker(u),"_blank"); return; }
+    bloque=!!(j&&j.bloque);
   }catch(e){}
   try{ const r=await fetch("https://archive.org/wayback/available?url="+encodeURIComponent(u));
     const j=await r.json(); const s=j&&j.archived_snapshots&&j.archived_snapshots.closest;
     if(s&&s.available){ status("✅ Snapshot trouvé → Internet Archive."); window.open(s.url.replace(/^http:/,"https:"),"_blank"); return; }
   }catch(e){}
-  status("⚠️ Pas de version complète détectée — j'ouvre le meilleur essai (Mon lecteur).");
-  window.open(links.worker(u),"_blank");
+  // Rien de complet : on le dit au lieu d'ouvrir une page tronquée, et on laisse le choix.
+  const st=document.getElementById("status");
+  st.innerHTML=bloque?'⚠️ Ce site refuse les lecteurs automatiques (protection anti-robot) et aucune archive n\'a été trouvée. Tu peux tenter : '
+                     :'⚠️ Texte complet introuvable : cet article semble réservé aux abonnés (le site n\'envoie que le début). Tu peux tenter : ';
+  [["archive.today",links.archive(u)]].concat(bloque?[]:[["la page nettoyée",links.worker(u)]]).concat([["l'article d'origine",u]]).forEach(([t,h],i)=>{ const a=document.createElement("a"); a.textContent=t; a.href=h; a.target="_blank"; a.rel="noopener"; if(i) st.append(" · "); st.append(a); });
 }
 document.getElementById("smartBtn").addEventListener("click",smart);
 document.getElementById("url").addEventListener("keydown",e=>{ if(e.key==="Enter") smart(); });
