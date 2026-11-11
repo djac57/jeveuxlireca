@@ -1,12 +1,8 @@
 name: Déployer le worker (Cloudflare)
 
+# Déclenchement manuel seulement : ce dépôt n'a pas de jeton Cloudflare. Le déploiement courant
+# se fait depuis le dépôt titistoire (workflow deploy-jeveuxlireca.yml), qui possède le jeton.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'worker/**'
-      - 'wrangler.toml'
-      - '.github/workflows/deploy-worker.yml'
   workflow_dispatch:
 
 permissions:
