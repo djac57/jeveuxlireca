@@ -31,6 +31,7 @@ export default {
     const ck = (request.headers.get("cookie") || "").match(/(?:^|;\s*)jvl=([a-f0-9]+)/);
     const parK = k !== "" && egal(k, MDP), parCookie = !!ck && egal(ck[1], jeton);
     if (!parK && !parCookie) return probe ? json({ full: false, locked: true }, 401) : page(verrou(u, k !== ""), 401);
+    if (u.searchParams.get("check")) return json({ ok: true });      // simple vérification du mot de passe (écran d'entrée de la page)
     if (parK && !probe) {                       // on retire le mot de passe de l'adresse et on pose le cookie
       u.searchParams.delete("k");
       return new Response(null, { status: 302, headers: { location: u.toString(),

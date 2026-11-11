@@ -78,6 +78,15 @@
   </div>
 </div>
 
+<div id="porte" style="position:fixed;inset:0;z-index:50;background:#f4f7fb;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:380px;background:#fff;border-radius:18px;padding:26px;box-shadow:0 10px 40px rgba(20,40,80,.12);font-family:system-ui">
+    <h2 style="margin:0 0 6px">🔒 jeveuxlireca</h2>
+    <p style="margin:0 0 14px;color:#667">Accès réservé. Entre le mot de passe.</p>
+    <input id="porteMdp" type="password" autocomplete="current-password" placeholder="mot de passe" style="width:100%;padding:12px;border:2px solid #dce3ee;border-radius:10px;font-size:1rem;box-sizing:border-box">
+    <button id="porteOk" style="margin-top:12px;width:100%;padding:12px;border:0;border-radius:10px;background:#2aa876;color:#fff;font-weight:700;font-size:1rem;cursor:pointer">Entrer</button>
+    <p id="porteMsg" style="margin:10px 0 0;color:#c0392b;min-height:1.2em"></p>
+  </div>
+</div>
 <script>
 const DEFAULT_WK = "https://jeveuxlireca.djac-gene.workers.dev";
 let WK = DEFAULT_WK; try{ WK = localStorage.getItem("wk_url") || DEFAULT_WK; }catch(e){}
@@ -118,6 +127,20 @@ document.getElementById("url").addEventListener("keydown",e=>{ if(e.key==="Enter
   wk.addEventListener("change",()=>{ WK=norm(wk.value)||DEFAULT_WK; try{localStorage.setItem("wk_url",WK);}catch(e){} }); })();
 (function(){ const f=document.getElementById("mdp"); f.value=MDP;
   f.addEventListener("change",()=>{ MDP=f.value.trim(); try{ MDP?localStorage.setItem("wk_mdp",MDP):localStorage.removeItem("wk_mdp"); }catch(e){} }); })();
+// écran d'entrée : la page ne s'ouvre qu'avec le mot de passe, vérifié auprès du worker
+(function(){ const porte=document.getElementById("porte"), champ=document.getElementById("porteMdp"), msg=document.getElementById("porteMsg");
+  async function verifier(v){ const r=await fetch(WK.replace(/\/$/,"")+"/?check=1&k="+encodeURIComponent(v),{cache:"no-store"}); return r.ok; }
+  async function entrer(v,silencieux){
+    if(!v){ if(!silencieux) msg.textContent="Entre le mot de passe."; return; }
+    msg.style.color="#667"; msg.textContent=silencieux?"":"Vérification…";
+    try{ if(await verifier(v)){ MDP=v; try{localStorage.setItem("wk_mdp",v);}catch(e){} const f=document.getElementById("mdp"); if(f) f.value=v; porte.remove(); document.getElementById("url").focus(); return; }
+      msg.style.color="#c0392b"; msg.textContent=silencieux?"":"Mot de passe incorrect."; if(silencieux){ MDP=""; try{localStorage.removeItem("wk_mdp");}catch(e){} }
+    }catch(e){ msg.style.color="#c0392b"; msg.textContent="Connexion impossible, réessaie."; }
+  }
+  document.getElementById("porteOk").addEventListener("click",()=>entrer(champ.value.trim()));
+  champ.addEventListener("keydown",e=>{ if(e.key==="Enter") entrer(champ.value.trim()); });
+  if(MDP) entrer(MDP,true); else champ.focus();
+})();
 // favori
 var MAIN=function(){try{var d=document,h=d.documentElement,b=d.body,k=0;
  [h,b].forEach(function(e){if(!e)return;e.style.setProperty("overflow","auto","important");e.style.setProperty("position","static","important");["no-scroll","noscroll","modal-open","overflow-hidden","tp-modal-open"].forEach(function(c){e.classList.remove(c);});});
