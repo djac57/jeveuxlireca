@@ -91,14 +91,16 @@ function reader(a, url) {
 function strip(src, base) {
   const inject = `<base href="${base.origin}${base.pathname}"><style>
     html,body{overflow:auto!important;position:static!important;height:auto!important;filter:none!important}
-    [class*=paywall],[id*=paywall],[class*=piano],.tp-modal,.tp-backdrop,[class*=poool],[class*=qiota],[class*=regwall],[class*=subscription],[class*=premium-overlay],[class*=gate-overlay],[data-paywall],[class*=gradient-mask],[class*=fade-out]{display:none!important;-webkit-mask:none!important;mask:none!important}
+    [class*=paywall],[id*=paywall],[class*=piano],.tp-modal,.tp-backdrop,[class*=poool],[class*=qiota],[class*=regwall],[class*=subscription],[class*=premium-overlay],[class*=gate-overlay],[data-paywall],[class*=gradient-mask],[class*=fade-out]{-webkit-mask:none!important;mask:none!important}
+    /* on ne cache que les petits blocs : jamais la page, l'article ou un bloc qui contient le titre ou le texte (L'Humanité met « --paywall » sur la page entière) */
+    :is([class*=paywall],[id*=paywall],[class*=piano],.tp-modal,.tp-backdrop,[class*=poool],[class*=qiota],[class*=regwall],[class*=subscription],[class*=premium-overlay],[class*=gate-overlay],[data-paywall],[class*=gradient-mask],[class*=fade-out]):not(html,body,main,article,:has(h1,article,main)){display:none!important;-webkit-mask:none!important;mask:none!important}
     *{-webkit-line-clamp:unset!important;max-height:none!important;filter:none!important}
     [class*=teaser],[class*=truncat],[class*=fade]{max-height:none!important;-webkit-mask:none!important;mask:none!important;opacity:1!important}</style>`;
   // On retire les scripts du site : hors de leur domaine ils plantent (« A required part of this site couldn't load »)
   // et ce sont eux qui remettent le mur. Le contenu des <noscript> est gardé.
   src = src.replace(/<script\b[\s\S]*?<\/script\s*>/gi, "").replace(/<\/?noscript[^>]*>/gi, "");
   const u = base.href, bandeau = `<div style="all:initial;display:block;font:15px/1.45 system-ui,sans-serif;background:#fff8e1;color:#5a4500;border-bottom:1px solid #ecd9a0;padding:12px 16px;position:relative;z-index:2147483647">
-    <b>jeveuxlireca</b> — ce site n'a pas livré le texte complet (article probablement réservé aux abonnés : la suite n'est pas envoyée du tout). Voici la page nettoyée. Autres pistes :
+    <b>jeveuxlireca</b> — ce site n'a pas livré le texte complet (article probablement réservé aux abonnés : la suite n'est pas envoyée du tout). Voici la page nettoyée. Les archives ci-dessous n'ont souvent, elles aussi, que le début ; le texte entier se lit avec un abonnement ou par la presse en ligne d'une bibliothèque (Europresse). Autres pistes :
     <a style="color:#1a5fb4" href="https://web.archive.org/web/2/${esc(u)}" target="_blank">Internet Archive</a> ·
     <a style="color:#1a5fb4" href="https://archive.ph/newest/${encodeURIComponent(u)}" target="_blank">archive.today</a> ·
     <a style="color:#1a5fb4" href="${esc(u)}" target="_blank">page d'origine</a></div>`;
